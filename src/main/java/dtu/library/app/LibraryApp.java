@@ -8,7 +8,7 @@ public class LibraryApp {
 
 	private final String ADMIN_PASSWORD = "adminadmin";
 	private boolean is_admin_logged_in = false;
-	private final ArrayList<Book> books = new ArrayList<>();
+	private final List<Book> books = new ArrayList<>();
 
 	public void addBook(Book book) throws OperationNotAllowedException {
 		if(!is_admin_logged_in) { throw new OperationNotAllowedException("Administrator login required"); }
