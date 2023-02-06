@@ -59,6 +59,10 @@ public class LibraryApp {
 	public void adminLogout(){
 		is_admin_logged_in = false;
 	}
+
+    public void returnBook(User user, Book book) throws OperationNotAllowedException {
+		user.returnBook(book);
+    }
 }
 
 

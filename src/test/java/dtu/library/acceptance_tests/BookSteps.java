@@ -17,12 +17,11 @@ import io.cucumber.java.en.When;
 
 public class BookSteps {
 
-	private final LibraryApp libraryApp;
-	private final ErrorMessageHolder errorMessageHolder;
+	private final LibraryApp library_app;
+	private final ErrorMessageHolder error_message_holder;
 	private final UserHelper user_helper;
 	private final BookHelper book_helper;
 	private List<Book> books;
-	private int books_borrowed;
 
 	/*
 	 * Note that the constructor is apparently never called, but there are no null
@@ -38,9 +37,9 @@ public class BookSteps {
 	 * This principle is called <em>dependency injection</em>. More information can
 	 * be found in the "Cucumber for Java" book available online from the DTU Library.
 	 */
-	public BookSteps(LibraryApp libraryApp, ErrorMessageHolder errorMessageHolder, UserHelper user_helper, BookHelper book_helper) {
-		this.libraryApp = libraryApp;
-		this.errorMessageHolder = errorMessageHolder;
+	public BookSteps(LibraryApp library_app, ErrorMessageHolder error_message_holder, UserHelper user_helper, BookHelper book_helper) {
+		this.library_app = library_app;
+		this.error_message_holder = error_message_holder;
 		this.user_helper = user_helper;
 		this.book_helper = book_helper;
 	}
@@ -52,47 +51,47 @@ public class BookSteps {
 
 	@Given("the book is not in the library")
 	public void theBookIsNotInTheLibrary() {
-		assertFalse(libraryApp.containsBookWithSignature(book_helper.getBook().getSignature()));
+		assertFalse(library_app.containsBookWithSignature(book_helper.getBook().getSignature()));
 	}
 
 
 	@Given("these books are contained in the library")
 	public void theseBooksAreContainedInTheLibrary(List<List<String>> books) throws Exception {
 		for (List<String> bookInfo : books) {
-			libraryApp.addBook(new Book(bookInfo.get(0), bookInfo.get(1), bookInfo.get(2)));
+			library_app.addBook(new Book(bookInfo.get(0), bookInfo.get(1), bookInfo.get(2)));
 		}
 	}
 
 	@When("the book is added to the library")
 	public void bookIsAddedToTheLibrary() {
 		try {
-			libraryApp.addBook(book_helper.getBook());
+			library_app.addBook(book_helper.getBook());
 		} catch (OperationNotAllowedException e) {
-			errorMessageHolder.setErrorMessage(e.getMessage());
+			error_message_holder.setErrorMessage(e.getMessage());
 		}
 	}
 
 	@Then("the book with title {string}, author {string}, and signature {string} is contained in the library")
 	public void theBookWithTitleAuthorAndSignatureIsContainedInTheLibrary(String title, String author, String signature)
 			throws Exception {
-		assertTrue(libraryApp.containsBookWithSignature(signature));
+		assertTrue(library_app.containsBookWithSignature(signature));
 	}
 
 	@Then("the error message {string} is given")
 	public void theErrorMessageIsGiven(String errorMessage) throws Exception {
-		assertEquals(errorMessage, this.errorMessageHolder.getErrorMessage());
+		assertEquals(errorMessage, this.error_message_holder.getErrorMessage());
 	}
 
 	@Given("the library has a book with title {string}, author {string}, and signature {string}")
 	public void theLibraryHasABookWithTitleAuthorAndSignature(String title, String author, String signature)
 			throws Exception {
 		Book book = new Book(title, author, signature);
-		libraryApp.addBook(book);
+		library_app.addBook(book);
 	}
 
 	@When("the user searches for the text {string}")
 	public void theUserSearchesForTheText(String searchText) throws Exception {
-		books = libraryApp.search(searchText);
+		books = library_app.search(searchText);
 	}
 
 	@Then("the book with signature {string} is found")
@@ -118,57 +117,66 @@ public class BookSteps {
 	@Given("a book in the library")
 	public void aBookInTheLibrary() {
 		book_helper.createBook("Test", "John Doe", "1234567890");
-		libraryApp.adminLogin("adminadmin");
+		library_app.adminLogin("adminadmin");
 		try {
-			libraryApp.addBook(book_helper.getBook());
+			library_app.addBook(book_helper.getBook());
 		} catch (OperationNotAllowedException e) {
-			errorMessageHolder.setErrorMessage(e.getMessage());
+			error_message_holder.setErrorMessage(e.getMessage());
 		}
-		libraryApp.adminLogout();
+		library_app.adminLogout();
 	}
 	@And("the user has not borrowed the book")
 	public void theUserHasNotBorrowedTheBook() {
-		assertFalse(libraryApp.userHasBorrowedBook(user_helper.getUser(), book_helper.getBook()));
+		assertFalse(library_app.userHasBorrowedBook(user_helper.getUser(), book_helper.getBook()));
 	}
 
 	@When("the user borrows the book")
 	public void theUserBorrowsTheBook() {
 		try {
-			libraryApp.borrowBook(user_helper.getUser(), book_helper.getBook());
+			library_app.borrowBook(user_helper.getUser(), book_helper.getBook());
 		} catch (TooManyBookException e) {
-			errorMessageHolder.setErrorMessage(e.getMessage());
+			error_message_holder.setErrorMessage(e.getMessage());
 		}
 	}
 
 	@Then("the book is borrowed by the user")
 	public void theBookIsBorrowedByTheUser() {
-		assertTrue(libraryApp.userHasBorrowedBook(user_helper.getUser(), book_helper.getBook()));
+		assertTrue(library_app.userHasBorrowedBook(user_helper.getUser(), book_helper.getBook()));
 	}
 
 	@Given("the user has borrowed {int} books")
-	public void theUserHasBorrowedBooks(int amount_of_books) {
-		books_borrowed = amount_of_books;
+	public void theUserHasBorrowedBooks(int amount_of_books){
+		user_helper.setAmountOfBorrowedBooks(amount_of_books);
 	}
 
 	@And("a book is in the library")
 	public void aBookIsInTheLibrary() {
 		book_helper.createBook("Test", "John Doe", "1234567890");
-		libraryApp.adminLogin("adminadmin");
+		library_app.adminLogin("adminadmin");
 		try {
-			libraryApp.addBook(book_helper.getBook());
+			library_app.addBook(book_helper.getBook());
 		} catch (OperationNotAllowedException e) {
-			errorMessageHolder.setErrorMessage(e.getMessage());
+			error_message_holder.setErrorMessage(e.getMessage());
 		}
-		libraryApp.adminLogout();
+		library_app.adminLogout();
 	}
 
 	@Then("the book is not borrowed by the user")
 	public void theBookIsNotBorrowedByTheUser() {
-		assertFalse(libraryApp.userHasBorrowedBook(user_helper.getUser(), book_helper.getBook()));
+		assertFalse(library_app.userHasBorrowedBook(user_helper.getUser(), book_helper.getBook()));
 	}
 
 	@And("the user gets the error message {string}")
 	public void theUserGetsTheErrorMessage(String error_message) {
-		assertEquals(error_message, this.errorMessageHolder.getErrorMessage());
+		assertEquals(error_message, this.error_message_holder.getErrorMessage());
+	}
+
+	@And("the user returns the book")
+	public void theUserReturnsTheBook() {
+		try {
+			library_app.returnBook(user_helper.getUser(), book_helper.getBook());
+		} catch (OperationNotAllowedException e) {
+			error_message_holder.setErrorMessage(e.getMessage());
+		}
 	}
 }

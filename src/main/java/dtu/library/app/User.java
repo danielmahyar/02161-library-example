@@ -14,14 +14,23 @@ public class User {
     }
 
     public void borrowBook(Book book_to_borrow) throws TooManyBookException {
-        if(getAmountOfBorrowedBooks() > 10){
-            throw new TooManyBookException("Can't borrow more than 10 books");
+        if(getAmountOfBorrowedBooks() >= 10){
+            throw new TooManyBookException("Can’t borrow more than 10 books");
         }
+        borrowed_books_amount++;
         borrowed_books.add(book_to_borrow);
     }
 
     public boolean userHasBorrowedBook(Book book){
         return borrowed_books.stream().anyMatch(b -> b.getSignature().equals(book.getSignature()));
+    }
+
+    public void returnBook(Book book) throws OperationNotAllowedException {
+        if(!borrowed_books.contains(book)) {
+            throw new OperationNotAllowedException("Book is not borrowed by the user");
+        }
+        borrowed_books_amount--;
+        borrowed_books.remove(book);
     }
 
     public int getAmountOfBorrowedBooks(){

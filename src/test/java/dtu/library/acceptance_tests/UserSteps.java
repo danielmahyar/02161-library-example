@@ -10,14 +10,14 @@ import static org.junit.Assert.*;
 
 public class UserSteps {
 
-    private LibraryApp libraryApp;
-    private ErrorMessageHolder errorMessageHolder;
-    private UserHelper user_helper;
-    private BookHelper book_helper;
+    private final LibraryApp library_app;
+    private final ErrorMessageHolder error_message_holder;
+    private final UserHelper user_helper;
+    private final BookHelper book_helper;
 
     public UserSteps(LibraryApp app, ErrorMessageHolder errors, UserHelper user_helper, BookHelper book_helper){
-        this.libraryApp = app;
-        this.errorMessageHolder = errors;
+        this.library_app = app;
+        this.error_message_holder = errors;
         this.user_helper = user_helper;
         this.book_helper = book_helper;
     }
@@ -42,35 +42,35 @@ public class UserSteps {
     @When("the administrator registers the user")
     public void theAdministratorRegistersTheUser() {
         try{
-            libraryApp.registerNewUser(user_helper.getUser());
+            library_app.registerNewUser(user_helper.getUser());
         } catch (OperationNotAllowedException e){
-            errorMessageHolder.setErrorMessage(e.getMessage());
+            error_message_holder.setErrorMessage(e.getMessage());
         }
     }
     @Then("the user is a registered user of the library")
     public void theUserIsARegisteredUserOfTheLibrary() {
-        assertTrue(libraryApp.userIsRegistered(user_helper.getUser().getCPR()));
+        assertTrue(library_app.userIsRegistered(user_helper.getUser().getCPR()));
     }
 
     @Given("a user is registered with the library")
     public void aUserIsRegisteredWithTheLibrary() {
         user_helper.createUser("123456-7890");
-        libraryApp.adminLogin("adminadmin");
+        library_app.adminLogin("adminadmin");
         try {
-            libraryApp.registerNewUser(user_helper.getUser());
+            library_app.registerNewUser(user_helper.getUser());
         } catch (OperationNotAllowedException e) {
-            errorMessageHolder.setErrorMessage(e.getMessage());
+            error_message_holder.setErrorMessage(e.getMessage());
         }
-        libraryApp.adminLogout();
+        library_app.adminLogout();
     }
 
     @When("the administrator registers the user again")
     public void theAdministratorRegistersTheUserAgain() {
         user_helper.createUser("123456-7890");
         try {
-            libraryApp.registerNewUser(user_helper.getUser());
+            library_app.registerNewUser(user_helper.getUser());
         } catch (OperationNotAllowedException e) {
-            errorMessageHolder.setErrorMessage(e.getMessage());
+            error_message_holder.setErrorMessage(e.getMessage());
         }
     }
 }

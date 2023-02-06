@@ -10,7 +10,7 @@ import io.cucumber.java.en.When;
 
 public class LoginLogoutSteps {
 
-	private LibraryApp libraryApp;
+	private final LibraryApp library_app;
 	private String password;
 
 	/*
@@ -28,13 +28,13 @@ public class LoginLogoutSteps {
 	 * be found in "The Cucumber for Java Book" available online from the DTU Library.
 	 * (search using findit.dtu.dk).
 	 */
-	public LoginLogoutSteps(LibraryApp libraryApp) {
-		this.libraryApp = libraryApp;
+	public LoginLogoutSteps(LibraryApp library_app) {
+		this.library_app = library_app;
 	}
 
 	@Given("that the administrator is not logged in")
 	public void thatTheAdministratorIsNotLoggedIn() throws Exception {
-		assertFalse(libraryApp.adminLoggedIn());
+		assertFalse(library_app.adminLoggedIn());
 	}
 
 	@Given("the password is {string}")
@@ -44,22 +44,22 @@ public class LoginLogoutSteps {
 
 	@Then("the administrator login succeeds")
 	public void theAdministratorLoginSucceeds() throws Exception {
-		assertTrue(libraryApp.adminLogin(password));
+		assertTrue(library_app.adminLogin(password));
 	}
 
 	@Then("the adminstrator is logged in")
 	public void theAdminstratorIsLoggedIn() throws Exception {
-		assertTrue(libraryApp.adminLoggedIn());
+		assertTrue(library_app.adminLoggedIn());
 	}
 
 	@Then("the administrator login fails")
 	public void theAdministratorLoginFails() throws Exception {
-		assertFalse(libraryApp.adminLogin(password));
+		assertFalse(library_app.adminLogin(password));
 	}
 
 	@Then("the administrator is not logged in")
 	public void theAdministratorIsNotLoggedIn() throws Exception {
-		assertFalse(libraryApp.adminLoggedIn());
+		assertFalse(library_app.adminLoggedIn());
 	}
 
 	@Then("the administrator logs in successfully")
@@ -68,11 +68,11 @@ public class LoginLogoutSteps {
 
 	@Given("that the administrator is logged in")
 	public void thatTheAdministratorIsLoggedIn() throws Exception {
-		assertTrue(libraryApp.adminLogin("adminadmin"));
+		assertTrue(library_app.adminLogin("adminadmin"));
 	}
 
 	@When("the administrator logs out")
 	public void theAdministratorLogsOut() throws Exception {
-		libraryApp.adminLogout();
+		library_app.adminLogout();
 	}
 }
