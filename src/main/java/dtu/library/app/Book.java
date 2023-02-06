@@ -28,4 +28,10 @@ public class Book {
     public String getSignature() {
         return signature;
     }
+
+    public boolean match(String search_text){
+        return 	getSignature().contains(search_text) ||
+                getTitle().contains(search_text) ||
+                getAuthor().contains(search_text);
+    }
 }
