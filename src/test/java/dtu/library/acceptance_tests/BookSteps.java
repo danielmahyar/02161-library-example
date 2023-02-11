@@ -4,12 +4,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import dtu.library.app.Book;
 import dtu.library.app.LibraryApp;
 import dtu.library.app.OperationNotAllowedException;
 import dtu.library.app.TooManyBookException;
+import dtu.library.app.internal.User;
+import io.cucumber.java.bs.A;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -127,13 +132,13 @@ public class BookSteps {
 	}
 	@And("the user has not borrowed the book")
 	public void theUserHasNotBorrowedTheBook() {
-		assertFalse(library_app.userHasBorrowedBook(user_helper.getUser(), book_helper.getBook()));
+		assertFalse(library_app.userHasBorrowedBook(user_helper.getUser().getCPR(), book_helper.getBook().getSignature()));
 	}
 
 	@When("the user borrows the book")
 	public void theUserBorrowsTheBook() {
 		try {
-			library_app.borrowBook(user_helper.getUser(), book_helper.getBook());
+			library_app.borrowBook(user_helper.getUser().getCPR(), book_helper.getBook().getSignature());
 		} catch (TooManyBookException e) {
 			error_message_holder.setErrorMessage(e.getMessage());
 		}
@@ -141,12 +146,20 @@ public class BookSteps {
 
 	@Then("the book is borrowed by the user")
 	public void theBookIsBorrowedByTheUser() {
-		assertTrue(library_app.userHasBorrowedBook(user_helper.getUser(), book_helper.getBook()));
+		assertTrue(library_app.userHasBorrowedBook(user_helper.getUser().getCPR(), book_helper.getBook().getSignature()));
 	}
 
 	@Given("the user has borrowed {int} books")
-	public void theUserHasBorrowedBooks(int amount_of_books){
-		user_helper.setAmountOfBorrowedBooks(amount_of_books);
+	public void theUserHasBorrowedBooks(int amount_of_books) throws OperationNotAllowedException {
+		List<Book> books = getExampleBooks(amount_of_books);
+		addBooksToLibrary(books);
+		for (Book book : books) {
+			try{
+				library_app.borrowBook(user_helper.getUser().getCPR(), book.getSignature());
+			} catch (TooManyBookException e) {
+				error_message_holder.setErrorMessage(e.getMessage());
+			}
+		}
 	}
 
 	@And("a book is in the library")
@@ -163,7 +176,7 @@ public class BookSteps {
 
 	@Then("the book is not borrowed by the user")
 	public void theBookIsNotBorrowedByTheUser() {
-		assertFalse(library_app.userHasBorrowedBook(user_helper.getUser(), book_helper.getBook()));
+		assertFalse(library_app.userHasBorrowedBook(user_helper.getUser().getCPR(), book_helper.getBook().getSignature()));
 	}
 
 	@And("the user gets the error message {string}")
@@ -174,9 +187,32 @@ public class BookSteps {
 	@And("the user returns the book")
 	public void theUserReturnsTheBook() {
 		try {
-			library_app.returnBook(user_helper.getUser(), book_helper.getBook());
+			library_app.returnBook(user_helper.getUser().getCPR(), book_helper.getBook().getSignature());
 		} catch (OperationNotAllowedException e) {
 			error_message_holder.setErrorMessage(e.getMessage());
 		}
+	}
+
+	private List<Book> getExampleBooks(int amount_of_books) {
+		List<Book> list = new ArrayList<>();
+		for (int index = 0; index < amount_of_books; index++) {
+			Book temp_book = new Book("Title " + index, "Author " + index, "Signature " + index);
+			list.add(temp_book);
+		}
+		return list;
+	}
+
+	private void addBooksToLibrary(List<Book> books) throws OperationNotAllowedException {
+		library_app.adminLogin("adminadmin");
+		for (Book book : books) {
+			library_app.addBook(book);
+		}
+		library_app.adminLogout();
+	}
+
+	@Given("a book with signature {string} is in the library")
+	public void aBookWithSignatureIsInTheLibrary(String signature) throws OperationNotAllowedException {
+		book_helper.createBook("Mein Kampf", "A known person", signature);
+		addBooksToLibrary(Collections.singletonList(book_helper.getBook()));
 	}
 }

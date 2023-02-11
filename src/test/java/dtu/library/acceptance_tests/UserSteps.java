@@ -1,8 +1,10 @@
 package dtu.library.acceptance_tests;
 
+import dtu.library.app.Address;
 import dtu.library.app.LibraryApp;
 import dtu.library.app.OperationNotAllowedException;
-import dtu.library.app.User;
+import dtu.library.app.UserInfo;
+import dtu.library.app.internal.User;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -24,20 +26,17 @@ public class UserSteps {
 
     @Given("there is a user with CPR {string}, name {string}, e-mail {string}")
     public void thereIsAUserWithCPRNameEMail(String cpr, String name, String email) {
-        user_helper.createUser(cpr, name, email);
-        User new_user = user_helper.getUser();
-        assertEquals(cpr, new_user.getCPR());
-        assertEquals(name, new_user.getName());
-        assertEquals(email, new_user.getEmail());
+        user_helper.setUser(new UserInfo(cpr, name, email));
+        assertEquals(user_helper.getUser().getCPR(), cpr);
+        assertEquals(user_helper.getUser().getName(), name);
+        assertEquals(user_helper.getUser().getEmail(), email);
     }
+
     @Given("the user has address street {string}, post code {int}, and city {string}")
-    public void theUserHasAddressStreetPostCodeAndCity(String address, Integer post_code, String city) {
-        user_helper.addFinalInfo(address, post_code, city);
-        User new_user = user_helper.getUser();
-        new_user.setAddress(address).setPostCode(post_code).setCity(city);
-        assertEquals(address, new_user.getAddress());
-        assertEquals((int) post_code, new_user.getPostCode());
-        assertEquals(city, new_user.getCity());
+    public void theUserHasAddressStreetPostCodeAndCity(String street, Integer post_code, String city) {
+        Address new_address = new Address(street, post_code, city);
+        user_helper.getUser().setAddress(new_address);
+        assertEquals(user_helper.getUser().getAddress(), new_address);
     }
     @When("the administrator registers the user")
     public void theAdministratorRegistersTheUser() {
@@ -47,14 +46,21 @@ public class UserSteps {
             error_message_holder.setErrorMessage(e.getMessage());
         }
     }
+
     @Then("the user is a registered user of the library")
     public void theUserIsARegisteredUserOfTheLibrary() {
+        UserInfo user = library_app.getUser(user_helper.getUser().getCPR());
+
         assertTrue(library_app.userIsRegistered(user_helper.getUser().getCPR()));
+
+        assertEquals(user_helper.getUser().getAddress(), user.getAddress());
+        assertEquals(user_helper.getUser().getCPR(), user.getCPR());
+        assertEquals(user_helper.getUser().getEmail(), user.getEmail());
+        assertEquals(user_helper.getUser().getName(), user.getName());
     }
 
     @Given("a user is registered with the library")
     public void aUserIsRegisteredWithTheLibrary() {
-        user_helper.createUser("123456-7890");
         library_app.adminLogin("adminadmin");
         try {
             library_app.registerNewUser(user_helper.getUser());
@@ -66,11 +72,6 @@ public class UserSteps {
 
     @When("the administrator registers the user again")
     public void theAdministratorRegistersTheUserAgain() {
-        user_helper.createUser("123456-7890");
-        try {
-            library_app.registerNewUser(user_helper.getUser());
-        } catch (OperationNotAllowedException e) {
-            error_message_holder.setErrorMessage(e.getMessage());
-        }
+        aUserIsRegisteredWithTheLibrary();
     }
 }

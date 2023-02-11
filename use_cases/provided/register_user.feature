@@ -26,7 +26,8 @@ Feature: Register user
   #  Given that the administrator is logged in
   #  And there is a user with CPR "020563-4886", name "Helena M. Bertelsen", e-mail "HelenaMBertelsen@rhyta.com "
   #  And the user has address street "SlÃ¥enhaven 50", post code 4560, and city "Vig"
-  #  When the administrator registers the user
+  #  Given the administrator registers the user
   #  And there is a user with CPR "020563-4836", name "Helena M. Bertelsen", e-mail "HelenaMBertelsen@rhyta.com "
   #  And the user has address street "SlÃ¥enhaven 50", post code 4560, and city "Vig"
+  #  When the administrator registers the user
   #  Then the error message "Information is the same only different CPR" is given

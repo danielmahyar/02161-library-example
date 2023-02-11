@@ -1,9 +1,8 @@
 package dtu.library.app;
 
-import io.cucumber.java.bs.A;
+import dtu.library.app.internal.User;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,17 +37,31 @@ public class LibraryApp {
 		return adminLoggedIn();
 	}
 
-	public void registerNewUser(User new_user) throws OperationNotAllowedException {
+	public void registerNewUser(UserInfo new_user) throws OperationNotAllowedException {
+		User user = new User(new_user);
 		if(!adminLoggedIn()) { throw new OperationNotAllowedException("Administrator login required"); }
-		if(userIsRegistered(new_user.getCPR())){ throw new OperationNotAllowedException("User is already registered"); }
-		users.add(new_user);
+		if(userIsRegistered(user.getCPR())){ throw new OperationNotAllowedException("User is already registered"); }
+		users.add(user);
 	}
 
-	public boolean userHasBorrowedBook(User user, Book book){
-		return user.userHasBorrowedBook(book);
+	public UserInfo getUser(String CPR){
+		return new UserInfo(getUserFromCPR(CPR));
 	}
 
-	public void borrowBook(User user, Book book) throws TooManyBookException {
+
+	public User getUserFromCPR(String CPR){
+		return users.stream().filter(user -> user.getCPR().equals(CPR)).findFirst().orElse(null);
+	}
+
+	public boolean userHasBorrowedBook(String CPR, String signature) {
+		User user = getUserFromCPR(CPR);
+		Book book = getBookFromSignature(signature);
+		return user.hasBorrowed(book);
+	}
+
+	public void borrowBook(String CPR, String signature) throws TooManyBookException {
+		User user = getUserFromCPR(CPR);
+		Book book = getBookFromSignature(signature);
 		user.borrowBook(book);
 	}
 
@@ -60,9 +73,15 @@ public class LibraryApp {
 		is_admin_logged_in = false;
 	}
 
-    public void returnBook(User user, Book book) throws OperationNotAllowedException {
+	public void returnBook(String CPR, String signature) throws OperationNotAllowedException {
+		User user = getUserFromCPR(CPR);
+		Book book = getBookFromSignature(signature);
 		user.returnBook(book);
-    }
+	}
+
+	public Book getBookFromSignature(String signature){
+		return books.stream().filter(book -> book.getSignature().contentEquals(signature)).findFirst().orElse(null);
+	}
 }
 
 

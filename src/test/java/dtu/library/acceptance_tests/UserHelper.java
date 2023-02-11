@@ -1,40 +1,26 @@
 package dtu.library.acceptance_tests;
 
-import dtu.library.app.Book;
-import dtu.library.app.TooManyBookException;
-import dtu.library.app.User;
-
-import java.util.List;
+import dtu.library.app.Address;
+import dtu.library.app.UserInfo;
+import dtu.library.app.internal.User;
 
 public class UserHelper {
-    private User user;
-    private int amount_of_borrowed_books = 0;
+    private UserInfo user;
 
-    public void createUser(String CPR, String name, String email, String city, String address, int post_code){
-        user = new User();
-        user.setCPR(CPR).setName(name).setEmail(email).setCity(city).setAddress(address).setPostCode(post_code);
-        user.setBorrowedBooksAmount(amount_of_borrowed_books);
-    }
-
-    public void createUser(String CPR, String name, String email){
-        user = new User();
-        user.setCPR(CPR).setName(name).setEmail(email);
-        user.setBorrowedBooksAmount(amount_of_borrowed_books);
-    }
-
-    public void addFinalInfo(String address, int post_code, String city){
-        user.setCity(city).setAddress(address).setPostCode(post_code);
-    }
-
-    public void createUser(String CPR){
-        createUser(CPR, "John Doe", "johndoe@gmail.com", "Lyngby", "Skodsborgvej 190", 2850);
-    }
-
-    public void setAmountOfBorrowedBooks(int num) {
-        this.amount_of_borrowed_books = num;
-    }
-
-    public User getUser(){
+    public UserInfo getUser(){
+        if(user == null){
+            user = exampleUser();
+        }
         return user;
+    }
+
+    public UserInfo exampleUser(){
+        UserInfo user = new UserInfo("233278-9809", "Daniel C. Mahyar", "s224797@gmail.com");
+        Address user_address = new Address("Skodsborgvej 190, st. 872", 2850, "Nærum");
+        user.setAddress(user_address);
+        return user;
+    }
+    public void setUser(UserInfo user_info){
+        user = user_info;
     }
 }
