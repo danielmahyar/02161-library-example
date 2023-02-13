@@ -1,4 +1,4 @@
-package dtu.library.app;
+package dtu.library.app.exceptions;
 
 /**
  * The class represents an exception that is thrown to indicate that the 

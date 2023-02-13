@@ -1,15 +1,17 @@
 package dtu.library.app.internal;
 
 import dtu.library.app.*;
+import dtu.library.app.exceptions.OperationNotAllowedException;
+import dtu.library.app.exceptions.TooManyBookException;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class User {
 
     private String CPR, name, email;
     private Address address;
     private final List<Book> borrowed_books = new ArrayList<>();
+    private final HashMap<String, Long> date_history = new HashMap<>();
 
     public User(String CPR, String name, String email){
         this.CPR = CPR;
@@ -28,11 +30,16 @@ public class User {
         return getCPR().contentEquals(CPR);
     }
 
-    public void borrowBook(Book book_to_borrow) throws TooManyBookException {
+    public void borrowBook(Book book_to_borrow, Calendar cal) throws TooManyBookException, OperationNotAllowedException {
         if(getAmountOfBorrowedBooks() >= 10){
             throw new TooManyBookException("Can’t borrow more than 10 books");
         }
+        if(hasBorrowed(book_to_borrow)){
+            throw new OperationNotAllowedException("Book has already been borrowed");
+        }
         borrowed_books.add(book_to_borrow);
+        System.out.println("Millis when borrowing the book" + cal.getTimeInMillis());
+        date_history.put(book_to_borrow.getSignature(), cal.getTimeInMillis());
     }
 
     public boolean hasBorrowed(Book book) {
@@ -48,6 +55,10 @@ public class User {
 
     public int getAmountOfBorrowedBooks() {
         return borrowed_books.size();
+    }
+
+    public HashMap<String, Long> getBorrowHistory(){
+        return date_history;
     }
 
     public String getCPR() {

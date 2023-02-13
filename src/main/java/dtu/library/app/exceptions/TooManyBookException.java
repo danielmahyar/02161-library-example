@@ -1,4 +1,4 @@
-package dtu.library.app;
+package dtu.library.app.exceptions;
 
 public class TooManyBookException extends Exception{
 

@@ -14,3 +14,8 @@ Feature: Borrow Book
     When the user borrows the book
     Then the book is not borrowed by the user
     And the user gets the error message "Can’t borrow more than 10 books"
+  Scenario: User borrows the same book twice
+    Given the user has borrowed a book
+    When the user borrows the book
+    Then the book is borrowed by the user
+    And the user gets the error message "Book has already been borrowed"

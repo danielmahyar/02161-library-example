@@ -5,16 +5,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import dtu.library.app.Book;
 import dtu.library.app.LibraryApp;
-import dtu.library.app.OperationNotAllowedException;
-import dtu.library.app.TooManyBookException;
+import dtu.library.app.UserInfo;
+import dtu.library.app.exceptions.OperationNotAllowedException;
+import dtu.library.app.exceptions.TooManyBookException;
 import dtu.library.app.internal.User;
-import io.cucumber.java.bs.A;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -139,7 +138,7 @@ public class BookSteps {
 	public void theUserBorrowsTheBook() {
 		try {
 			library_app.borrowBook(user_helper.getUser().getCPR(), book_helper.getBook().getSignature());
-		} catch (TooManyBookException e) {
+		} catch (Exception e) {
 			error_message_holder.setErrorMessage(e.getMessage());
 		}
 	}
@@ -214,5 +213,20 @@ public class BookSteps {
 	public void aBookWithSignatureIsInTheLibrary(String signature) throws OperationNotAllowedException {
 		book_helper.createBook("Mein Kampf", "A known person", signature);
 		addBooksToLibrary(Collections.singletonList(book_helper.getBook()));
+	}
+
+	@Given("the user has borrowed a book")
+	public void theUserHasBorrowedABook() throws Exception {
+		library_app.adminLogin("adminadmin");
+		library_app.registerNewUser(user_helper.getUser());
+		book_helper.createBook("Mein Kampf", "A known person", "signaturefromexample00");
+		library_app.addBook(book_helper.getBook());
+		library_app.adminLogout();
+		library_app.borrowBook(user_helper.getUser().getCPR(), book_helper.getBook().getSignature());
+	}
+
+	@And("the fine for one overdue book is {int} DKK")
+	public void theFineForOneOverdueBookIsDKK(int fine) {
+		library_app.setFine(fine);
 	}
 }

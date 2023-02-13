@@ -2,9 +2,9 @@ package dtu.library.acceptance_tests;
 
 import dtu.library.app.Address;
 import dtu.library.app.LibraryApp;
-import dtu.library.app.OperationNotAllowedException;
+import dtu.library.app.exceptions.OperationNotAllowedException;
 import dtu.library.app.UserInfo;
-import dtu.library.app.internal.User;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -73,5 +73,15 @@ public class UserSteps {
     @When("the administrator registers the user again")
     public void theAdministratorRegistersTheUserAgain() {
         aUserIsRegisteredWithTheLibrary();
+    }
+
+    @And("the user has to pay a fine of {int} DKK")
+    public void theUserHasToPayAFineOfDKK(int fine) {
+        assertEquals(library_app.getFineForUser(user_helper.getUser()), fine);
+    }
+
+    @Then("the user has overdue books")
+    public void theUserHasOverdueBooks() {
+        assertTrue(library_app.userHasOverdueMedia(user_helper.getUser()));
     }
 }
