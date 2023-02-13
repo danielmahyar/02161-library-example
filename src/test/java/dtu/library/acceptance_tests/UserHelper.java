@@ -1,8 +1,7 @@
 package dtu.library.acceptance_tests;
 
-import dtu.library.app.Address;
+import dtu.library.app.internal.Address;
 import dtu.library.app.UserInfo;
-import dtu.library.app.internal.User;
 
 public class UserHelper {
     private UserInfo user;

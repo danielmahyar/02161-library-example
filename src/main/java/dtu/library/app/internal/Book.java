@@ -1,4 +1,4 @@
-package dtu.library.app;
+package dtu.library.app.internal;
 
 /**
  * This class represents a book with title, author, and signature, where signature

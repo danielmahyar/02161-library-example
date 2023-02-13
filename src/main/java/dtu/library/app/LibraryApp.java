@@ -2,7 +2,10 @@ package dtu.library.app;
 
 import dtu.library.app.exceptions.OperationNotAllowedException;
 import dtu.library.app.exceptions.TooManyBookException;
+import dtu.library.app.internal.Book;
 import dtu.library.app.internal.User;
+import dtu.library.app.servers.DateServer;
+import dtu.library.app.servers.EmailServer;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,6 +19,7 @@ public class LibraryApp {
 	private final List<User> users = new ArrayList<>();
 
 	private DateServer date_server = new DateServer();
+	private EmailServer email_server = new EmailServer();
 
 	public void addBook(Book book) throws OperationNotAllowedException {
 		if(!is_admin_logged_in) { throw new OperationNotAllowedException("Administrator login required"); }
@@ -76,16 +80,23 @@ public class LibraryApp {
 	public boolean userHasOverdueMedia(UserInfo ui){
 		User user = getUserFromCPR(ui.getCPR());
 		HashMap<String, Long> history = user.getBorrowHistory();
-		System.out.println("New time in millis" + getDate().getDisplayName(Calendar.SECOND, Calendar.SHORT, Locale.ENGLISH));
-		return history.values().stream().anyMatch(date_in_millis -> (date_in_millis + (29L * 24 * 60 * 60 * 1000)) > getDate().getTimeInMillis());
+		return history
+				.values()
+				.stream()
+				.anyMatch(
+						date_in_millis -> (date_in_millis + (28L * 24 * 60 * 60 * 1000)) < getDate().getTimeInMillis()
+				);
 	}
 
 	public int getFineForUser(UserInfo ui) {
 		User user = getUserFromCPR(ui.getCPR());
-		return (int) user.getBorrowHistory()
+		return (int) user
+				.getBorrowHistory()
 				.values()
 				.stream()
-				.filter(millis -> millis > getDate().getTimeInMillis())
+				.filter(
+						date_in_millis -> (date_in_millis + (28L * 24 * 60 * 60 * 1000)) < getDate().getTimeInMillis()
+				)
 				.count() * OVERDUE_FINE_IN_DKK;
 	}
 
@@ -106,6 +117,10 @@ public class LibraryApp {
 
 	public void setDateServer(DateServer date_server){
 		this.date_server = date_server;
+	}
+
+	public void setEmailServer(EmailServer email_server){
+		this.email_server = email_server;
 	}
 
 	public int getFine(){

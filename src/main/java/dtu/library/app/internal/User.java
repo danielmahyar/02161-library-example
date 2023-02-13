@@ -38,7 +38,6 @@ public class User {
             throw new OperationNotAllowedException("Book has already been borrowed");
         }
         borrowed_books.add(book_to_borrow);
-        System.out.println("Millis when borrowing the book" + cal.getTimeInMillis());
         date_history.put(book_to_borrow.getSignature(), cal.getTimeInMillis());
     }
 

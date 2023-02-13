@@ -8,12 +8,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import dtu.library.app.Book;
+import dtu.library.app.internal.Book;
 import dtu.library.app.LibraryApp;
-import dtu.library.app.UserInfo;
 import dtu.library.app.exceptions.OperationNotAllowedException;
 import dtu.library.app.exceptions.TooManyBookException;
-import dtu.library.app.internal.User;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -228,5 +226,6 @@ public class BookSteps {
 	@And("the fine for one overdue book is {int} DKK")
 	public void theFineForOneOverdueBookIsDKK(int fine) {
 		library_app.setFine(fine);
+		assertEquals(library_app.getFine(), fine);
 	}
 }

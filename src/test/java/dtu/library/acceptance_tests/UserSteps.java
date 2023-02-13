@@ -1,6 +1,6 @@
 package dtu.library.acceptance_tests;
 
-import dtu.library.app.Address;
+import dtu.library.app.internal.Address;
 import dtu.library.app.LibraryApp;
 import dtu.library.app.exceptions.OperationNotAllowedException;
 import dtu.library.app.UserInfo;

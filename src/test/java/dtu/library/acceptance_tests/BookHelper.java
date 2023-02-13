@@ -1,6 +1,6 @@
 package dtu.library.acceptance_tests;
 
-import dtu.library.app.Book;
+import dtu.library.app.internal.Book;
 
 public class BookHelper {
     private Book book;

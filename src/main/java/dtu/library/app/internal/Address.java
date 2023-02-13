@@ -1,4 +1,4 @@
-package dtu.library.app;
+package dtu.library.app.internal;
 
 public class Address {
    private String street, city;

@@ -2,7 +2,7 @@ package dtu.library.acceptance_tests;
 
 import static org.mockito.Mockito.*;
 
-import dtu.library.app.DateServer;
+import dtu.library.app.servers.DateServer;
 import dtu.library.app.LibraryApp;
 
 import java.util.Calendar;

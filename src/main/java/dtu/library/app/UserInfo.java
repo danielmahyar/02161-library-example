@@ -1,5 +1,6 @@
 package dtu.library.app;
 
+import dtu.library.app.internal.Address;
 import dtu.library.app.internal.User;
 
 public class UserInfo {
