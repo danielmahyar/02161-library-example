@@ -1,9 +1,9 @@
 package dtu.library.acceptance_tests;
 
-import dtu.library.app.internal.Address;
+import dtu.library.app.domain.Address;
 import dtu.library.app.LibraryApp;
 import dtu.library.app.exceptions.OperationNotAllowedException;
-import dtu.library.app.UserInfo;
+import dtu.library.app.dto.UserInfo;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -75,13 +75,42 @@ public class UserSteps {
         aUserIsRegisteredWithTheLibrary();
     }
 
-    @And("the user has to pay a fine of {int} DKK")
-    public void theUserHasToPayAFineOfDKK(int fine) {
-        assertEquals(library_app.getFineForUser(user_helper.getUser()), fine);
+    @And("the user has to pay a fine of {double} DKK")
+    public void theUserHasToPayAFineOfDKK(double fine) {
+        assertEquals(fine, library_app.getFineForUser(user_helper.getUser()), 0);
     }
 
     @Then("the user has overdue books")
     public void theUserHasOverdueBooks() {
         assertTrue(library_app.userHasOverdueMedia(user_helper.getUser()));
     }
+
+    @And("the user has to pay no fine")
+    public void theUserHasToPayNoFine() {
+        assertEquals(0, library_app.getFineForUser(user_helper.getUser()), 0);
+    }
+
+    @When("the administrator unregisters that user")
+    public void theAdministratorUnregistersThatUser() throws Exception {
+        try{
+            library_app.unregisterUser(user_helper.getUser());
+        } catch (Exception e) {
+           error_message_holder.setErrorMessage(e.getMessage());
+        }
+    }
+
+    @Then("the user is not registered with the library")
+    public void theUserIsNotRegisteredWithTheLibrary() {
+        assertFalse(library_app.getUsers().anyMatch(u -> u.getCPR().equals(user_helper.getUser().getCPR())));
+    }
+
+    @Then("the user is still registered with the library")
+    public void theUserIsStillRegisteredWithTheLibrary() {
+        assertTrue(library_app.getUsers().anyMatch(u -> u.getCPR().equals(user_helper.getUser().getCPR())));
+    }
+
+    @Given("a user is not registered with the library")
+    public void aUserIsNotRegisteredWithTheLibrary() {
+    }
+
 }

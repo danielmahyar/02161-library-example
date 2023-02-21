@@ -13,9 +13,10 @@ Feature: Borrow Book
     Given a book with signature "Beck99" is in the library
     When the user borrows the book
     Then the book is not borrowed by the user
-    And the user gets the error message "Can’t borrow more than 10 books"
+    And the user gets the error message "Can't borrow more than 10 books/CDs"
   Scenario: User borrows the same book twice
-    Given the user has borrowed a book
+    Given a user is registered with the library
+    And the user has borrowed a book
     When the user borrows the book
     Then the book is borrowed by the user
     And the user gets the error message "Book has already been borrowed"

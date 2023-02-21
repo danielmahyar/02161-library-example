@@ -5,13 +5,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import dtu.library.app.internal.Book;
+import dtu.library.app.domain.Book;
 import dtu.library.app.LibraryApp;
+import dtu.library.app.dto.BookInfo;
+import dtu.library.app.exceptions.MissingPaymentException;
 import dtu.library.app.exceptions.OperationNotAllowedException;
-import dtu.library.app.exceptions.TooManyBookException;
+import dtu.library.app.exceptions.OverdueMediaException;
+import dtu.library.app.exceptions.TooManyMediaException;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -23,6 +27,7 @@ public class BookSteps {
 	private final ErrorMessageHolder error_message_holder;
 	private final UserHelper user_helper;
 	private final BookHelper book_helper;
+	private final MockDateHolder date_holder;
 	private List<Book> books;
 
 	/*
@@ -39,11 +44,12 @@ public class BookSteps {
 	 * This principle is called <em>dependency injection</em>. More information can
 	 * be found in the "Cucumber for Java" book available online from the DTU Library.
 	 */
-	public BookSteps(LibraryApp library_app, ErrorMessageHolder error_message_holder, UserHelper user_helper, BookHelper book_helper) {
+	public BookSteps(LibraryApp library_app, ErrorMessageHolder error_message_holder, UserHelper user_helper, BookHelper book_helper, MockDateHolder date_holder) {
 		this.library_app = library_app;
 		this.error_message_holder = error_message_holder;
 		this.user_helper = user_helper;
 		this.book_helper = book_helper;
+		this.date_holder = date_holder;
 	}
 
 	@Given("there is a book with title {string}, author {string}, and signature {string}")
@@ -148,12 +154,12 @@ public class BookSteps {
 
 	@Given("the user has borrowed {int} books")
 	public void theUserHasBorrowedBooks(int amount_of_books) throws OperationNotAllowedException {
-		List<Book> books = getExampleBooks(amount_of_books);
-		addBooksToLibrary(books);
-		for (Book book : books) {
+		List<BookInfo> books = book_helper.getExampleBooks(amount_of_books);
+		book_helper.addBooksToLibrary(books);
+		for (BookInfo book : books) {
 			try{
 				library_app.borrowBook(user_helper.getUser().getCPR(), book.getSignature());
-			} catch (TooManyBookException e) {
+			}  catch (Exception e) {
 				error_message_holder.setErrorMessage(e.getMessage());
 			}
 		}
@@ -190,33 +196,15 @@ public class BookSteps {
 		}
 	}
 
-	private List<Book> getExampleBooks(int amount_of_books) {
-		List<Book> list = new ArrayList<>();
-		for (int index = 0; index < amount_of_books; index++) {
-			Book temp_book = new Book("Title " + index, "Author " + index, "Signature " + index);
-			list.add(temp_book);
-		}
-		return list;
-	}
-
-	private void addBooksToLibrary(List<Book> books) throws OperationNotAllowedException {
-		library_app.adminLogin("adminadmin");
-		for (Book book : books) {
-			library_app.addBook(book);
-		}
-		library_app.adminLogout();
-	}
-
 	@Given("a book with signature {string} is in the library")
 	public void aBookWithSignatureIsInTheLibrary(String signature) throws OperationNotAllowedException {
 		book_helper.createBook("Mein Kampf", "A known person", signature);
-		addBooksToLibrary(Collections.singletonList(book_helper.getBook()));
+		book_helper.addBooksToLibrary(Collections.singletonList(book_helper.getBook().asMediumInfo()));
 	}
 
 	@Given("the user has borrowed a book")
 	public void theUserHasBorrowedABook() throws Exception {
 		library_app.adminLogin("adminadmin");
-		library_app.registerNewUser(user_helper.getUser());
 		book_helper.createBook("Mein Kampf", "A known person", "signaturefromexample00");
 		library_app.addBook(book_helper.getBook());
 		library_app.adminLogout();
@@ -225,7 +213,61 @@ public class BookSteps {
 
 	@And("the fine for one overdue book is {int} DKK")
 	public void theFineForOneOverdueBookIsDKK(int fine) {
-		library_app.setFine(fine);
-		assertEquals(library_app.getFine(), fine);
+	}
+
+    @Given("a user has an overdue book")
+    public void aUserHasAnOverdueBook() throws Exception {
+		library_app.adminLogin("adminadmin");
+		library_app.registerNewUser(user_helper.getUser());
+		book_helper.createBook("Mein Kampf", "A known person", "signaturefromexample00");
+		library_app.addBook(book_helper.getBook());
+		library_app.adminLogout();
+		library_app.borrowBook(user_helper.getUser().getCPR(), book_helper.getBook().getSignature());
+		date_holder.advancedDateByDates(29);
+		assertTrue(library_app.userHasOverdueMedia(user_helper.getUser()));
+    }
+
+	@And("the user pays {int} DKK")
+	public void theUserPaysDKK(int money) {
+		library_app.payFine(user_helper.getUser(), money);
+	}
+
+	@Then("the user can borrow books again")
+	public void theUserCanBorrowBooksAgain() {
+		assertTrue(library_app.canBorrow(user_helper.getUser()));
+	}
+
+	@Given("the user has another overdue book")
+	public void theUserHasAnotherOverdueBook() throws Exception {
+		List<BookInfo> books = new ArrayList<>();
+		books.add(new BookInfo("title", "author", "singature"));
+		book_helper.addBooksToLibrary(books);
+		book_helper.setBook(books.get(0).asBook());
+		library_app.borrowBook(user_helper.getUser().getCPR(), book_helper.getBook().getSignature());
+		date_holder.advancedDateByDates(29);
+		assertTrue(library_app.userHasOverdueMedia(user_helper.getUser()));
+	}
+
+	@Then("the user cannot borrow books")
+	public void theUserCannotBorrowBooks() {
+		assertFalse(library_app.canBorrow(user_helper.getUser()));
+	}
+
+	@And("there is a user with one overdue book")
+	public void thereIsAUserWithOneOverdueBook() throws Exception {
+		library_app.registerNewUser(user_helper.getUser());
+		theUserHasBorrowedABook();
+		date_holder.advancedDateByDates(29);
+		assertTrue(library_app.userHasOverdueMedia(user_helper.getUser()));
+	}
+
+	@Given("the user has to pay a fine")
+	public void theUserHasToPayAFine() throws Exception {
+		 book_helper.setBook(new Book("title","author","signature"));
+		book_helper.addBooksToLibrary(Collections.singletonList(book_helper.getBook().asMediumInfo()));
+		library_app.borrowBook(user_helper.getUser().getCPR(), book_helper.getBook().getSignature());
+		date_holder.advancedDateByDates(29);
+		library_app.returnBook(user_helper.getUser().getCPR(), book_helper.getBook().getSignature());
+		assertTrue(library_app.getFineForUser(user_helper.getUser()) > 0);
 	}
 }

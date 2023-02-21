@@ -1,7 +1,7 @@
-package dtu.library.app;
+package dtu.library.app.dto;
 
-import dtu.library.app.internal.Address;
-import dtu.library.app.internal.User;
+import dtu.library.app.domain.Address;
+import dtu.library.app.domain.User;
 
 public class UserInfo {
     private String CPR, name, email;

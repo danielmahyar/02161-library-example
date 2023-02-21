@@ -1,19 +1,22 @@
 package dtu.library.app;
 
+import dtu.library.app.dto.UserInfo;
+import dtu.library.app.exceptions.MissingPaymentException;
 import dtu.library.app.exceptions.OperationNotAllowedException;
-import dtu.library.app.exceptions.TooManyBookException;
-import dtu.library.app.internal.Book;
-import dtu.library.app.internal.User;
+import dtu.library.app.exceptions.OverdueMediaException;
+import dtu.library.app.exceptions.TooManyMediaException;
+import dtu.library.app.domain.Book;
+import dtu.library.app.domain.User;
 import dtu.library.app.servers.DateServer;
 import dtu.library.app.servers.EmailServer;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LibraryApp {
 
 	private final String ADMIN_PASSWORD = "adminadmin";
-	private int OVERDUE_FINE_IN_DKK = 100;
 	private boolean is_admin_logged_in = false;
 	private final List<Book> books = new ArrayList<>();
 	private final List<User> users = new ArrayList<>();
@@ -67,7 +70,7 @@ public class LibraryApp {
 		return user.hasBorrowed(book);
 	}
 
-	public void borrowBook(String CPR, String signature) throws TooManyBookException, OperationNotAllowedException {
+	public void borrowBook(String CPR, String signature) throws Exception {
 		User user = getUserFromCPR(CPR);
 		Book book = getBookFromSignature(signature);
 		user.borrowBook(book, getDate());
@@ -79,25 +82,28 @@ public class LibraryApp {
 
 	public boolean userHasOverdueMedia(UserInfo ui){
 		User user = getUserFromCPR(ui.getCPR());
-		HashMap<String, Long> history = user.getBorrowHistory();
-		return history
-				.values()
-				.stream()
-				.anyMatch(
-						date_in_millis -> (date_in_millis + (28L * 24 * 60 * 60 * 1000)) < getDate().getTimeInMillis()
-				);
+		return user.hasOverdueMedia(getDate());
 	}
 
-	public int getFineForUser(UserInfo ui) {
+	public void sendReminder() throws OperationNotAllowedException {
+		checkIfAdminLoggedIn();
+		Calendar current_date = getDate();
+		users.stream()
+				.filter(u ->  u.hasOverdueMedia(current_date))
+				.forEach(u -> {
+					u.sendEmailReminder(email_server, current_date);
+			});
+	}
+
+	private void checkIfAdminLoggedIn() throws OperationNotAllowedException {
+		if(!adminLoggedIn()){
+			throw new OperationNotAllowedException("Administrator required to login");
+		}
+	}
+
+	public double getFineForUser(UserInfo ui) {
 		User user = getUserFromCPR(ui.getCPR());
-		return (int) user
-				.getBorrowHistory()
-				.values()
-				.stream()
-				.filter(
-						date_in_millis -> (date_in_millis + (28L * 24 * 60 * 60 * 1000)) < getDate().getTimeInMillis()
-				)
-				.count() * OVERDUE_FINE_IN_DKK;
+		return user.getFine(getDate());
 	}
 
 
@@ -123,18 +129,43 @@ public class LibraryApp {
 		this.email_server = email_server;
 	}
 
-	public int getFine(){
-		return this.OVERDUE_FINE_IN_DKK;
-	}
-
-	public void setFine(int new_fine){
-		this.OVERDUE_FINE_IN_DKK = new_fine;
-	}
-
 	public Calendar getDate(){
 		return date_server.getDate();
 	}
 
+	public void payFine(UserInfo u, int money) {
+		User user = getUserFromCPR(u.getCPR());
+		user.payFine(money);
+	}
+
+	public boolean canBorrow(UserInfo u) {
+		User user = getUserFromCPR(u.getCPR());
+		try {
+			user.canBorrowMedium(getDate());
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	public void unregisterUser(UserInfo u) throws Exception {
+		User user = getUserFromCPR(u.getCPR());
+		checkIfAdminLoggedIn();
+		if (!users.contains(user)) {
+			throw new Exception("User not registered");
+		}
+		if (!user.getBorrowedMedium().isEmpty()) {
+			throw new Exception("Can't unregister user: user has still borrowed books/CDs");
+		}
+		if (user.getFine(date_server.getDate()) > 0) {
+			throw new Exception("Can't unregister user: user has still fines to pay");
+		}
+		users.remove(user);
+	}
+
+	public Stream<User> getUsers(){
+		return users.stream();
+	}
 }
 
 

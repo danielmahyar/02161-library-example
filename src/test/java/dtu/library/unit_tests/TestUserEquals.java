@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import dtu.library.app.internal.Address;
-import dtu.library.app.internal.User;
+import dtu.library.app.domain.Address;
+import dtu.library.app.domain.User;
 
 class TestUserEquals {
 
